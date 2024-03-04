@@ -23,7 +23,7 @@ export default function Cash() {
     const FormateDate = format(currentDate, "dd/MM/yyyy HH:mm:ss  ")
     const [loading, setLoading] = useState(false)
     //contexto
-    const { user } = useContext(AuthContext)
+    const { user, intern, extern } = useContext(AuthContext)
 
 
     //função para carregar todos os operadores 
@@ -34,29 +34,49 @@ export default function Cash() {
 
         async function LoadOperators() {
             setLoading(true)
-            try {
-                const response = await axios.get(`${ApiURL}${operatorEndpoint}Operators?connection=${user.ip}`)
-                console.log('response:', response.data)
+            if (intern === true) {
+                console.log('Usando Ip interno')
+                try {
+                    const response = await axios.get(`http://${user.ip}:3001/operator/getoperators`)
+                    console.log('response:', response.data)
 
-                //mapear os dados recebitos e colocar no formato label e value
-                const formattedOperators = response.data.map(item => ({
-                    label: item,
-                    value: item
-                }))
+                    //mapear os dados recebitos e colocar no formato label e value
+                    const formattedOperators = response.data.map(item => ({
+                        label: item,
+                        value: item
+                    }))
 
-                setCashList(formattedOperators)
-                setLoading(false)
+                    setCashList(formattedOperators)
+                    setLoading(false)
+                }
+                catch (error) {
+                    console.log('erro na solicitação', error)
+                    setBleeding(false)
+                }
+            } else {
+                try {
+                    const response = await axios.get(`${ApiURL}${operatorEndpoint}Operators?connection=${user.ip}`)
+                    console.log('response:', response.data)
+
+                    //mapear os dados recebitos e colocar no formato label e value
+                    const formattedOperators = response.data.map(item => ({
+                        label: item,
+                        value: item
+                    }))
+
+                    setCashList(formattedOperators)
+                    setLoading(false)
+                }
+                catch (error) {
+                    console.log('erro na solicitação', error)
+                    setBleeding(false)
+                }
             }
-            catch (error) {
-                console.log('erro na solicitação', error)
-                setBleeding(false)
-            }
+
         }
 
         LoadOperators()
 
-        // Se os dados estiverem chegando corretamente, o problema pode estar na estrutura dos dados.
-        // Vamos mapear os dados recebidos para o formato { label, value } esperado pelo DropDownPicker.
 
     }, []);
 
@@ -78,30 +98,59 @@ export default function Cash() {
             if (confirmedTwo) {
                 setConfirmedTwo(false)
             }
-            try {
-                const response = await axios.get(`${ApiURL}${OperatorEnterEndpoint}user=${selectedCash}&password=${password}&connection=${user.ip}`)
-                if (response.data) {
-                    console.log('operador selecionado', response.data)
-                    setSelectedCashDetails(response.data)
-                    setConfirmed(true)
-                } else {
-                    console.log('Algo deu errado', 'Verifique suas credenciais')
-                    Alert.alert('Algo deu errado', 'Verifique suas credenciais')
+            if (intern === true) {
+
+                try {
+                    const response = await axios.get(`http://${user.ip}:3001/operator/enteroperator?user=${selectedCash}&password=${password}`)
+                    if (response.data) {
+                        console.log('operador selecionado', response.data)
+                        setSelectedCashDetails(response.data)
+                        setConfirmed(true)
+                    } else {
+                        console.log('Algo deu errado', 'Verifique suas credenciais')
+                        Alert.alert('Algo deu errado', 'Verifique suas credenciais')
+                    }
+
+
                 }
+                catch (error) {
+                    console.log(error)
+                    if (error.response && error.response.status === 401) {
+                        Alert.alert('Erro de autenticação', 'Verifique suas credenciais')
+                    }
+                    else {
+                        Alert.alert('Erro ao buscar operador', 'Verifique o que pode ter dado errado')
+                    }
 
 
+                }
+            } else {
+                try {
+                    const response = await axios.get(`${ApiURL}${OperatorEnterEndpoint}user=${selectedCash}&password=${password}&connection=${user.ip}`)
+                    if (response.data) {
+                        console.log('operador selecionado', response.data)
+                        setSelectedCashDetails(response.data)
+                        setConfirmed(true)
+                    } else {
+                        console.log('Algo deu errado', 'Verifique suas credenciais')
+                        Alert.alert('Algo deu errado', 'Verifique suas credenciais')
+                    }
+
+
+                }
+                catch (error) {
+                    console.log(error)
+                    if (error.response && error.response.status === 401) {
+                        Alert.alert('Erro de autenticação', 'Verifique suas credenciais')
+                    }
+                    else {
+                        Alert.alert('Erro ao buscar operador', 'Verifique o que pode ter dado errado')
+                    }
+
+
+                }
             }
-            catch (error) {
-                console.log(error)
-                if (error.response && error.response.status === 401) {
-                    Alert.alert('Erro de autenticação', 'Verifique suas credenciais')
-                }
-                else {
-                    Alert.alert('Erro ao buscar operador', 'Verifique o que pode ter dado errado')
-                }
 
-
-            }
 
 
 
@@ -144,44 +193,86 @@ export default function Cash() {
         //se o caixa estiver aberto ele realiza a função para fechar
         if (selectedCashDetails.situacao === 1) {
             console.log(unformattedValue)
-            try {
-                console.log(selectedCashDetails.data)
+            if (intern === true) {
+                try {
+                    console.log(selectedCashDetails.data)
 
-                const CloseCash = await axios.get(`${ApiURL}Operator/CloseCashier?cashier=${selectedCashDetails.codigo}&bleeding=${unformattedValue}&date=${formattedData}&connection=${user.ip}`)
-                console.log('Caixa fechado com sucesso', CloseCash)
-                Alert.alert('Caixa fechado com sucesso')
-                setConfirmed(false)
-                setConfirmedTwo(false)
+                    const CloseCash = await axios.get(`http://${user.ip}:3001/operator/closecashier?cashier=${selectedCashDetails.codigo}&bleeding=${unformattedValue}&date=${formattedData}`)
+                    console.log('Caixa fechado com sucesso', CloseCash)
+                    Alert.alert('Caixa fechado com sucesso')
+                    setConfirmed(false)
+                    setConfirmedTwo(false)
 
-                setBleeding('')
+                    setBleeding('')
 
+                }
+                catch (error) {
+                    console.log('Erro ao fechar o caixa', error)
+                    Alert.alert('Erro ao fechar o caixa', error)
+                }
+            } else {
+                try {
+                    console.log(selectedCashDetails.data)
+
+                    const CloseCash = await axios.get(`${ApiURL}Operator/CloseCashier?cashier=${selectedCashDetails.codigo}&bleeding=${unformattedValue}&date=${formattedData}&connection=${user.ip}`)
+                    console.log('Caixa fechado com sucesso', CloseCash)
+                    Alert.alert('Caixa fechado com sucesso')
+                    setConfirmed(false)
+                    setConfirmedTwo(false)
+
+                    setBleeding('')
+
+                }
+                catch (error) {
+                    console.log('Erro ao fechar o caixa', error)
+                    Alert.alert('Erro ao fechar o caixa', error)
+                }
             }
-            catch (error) {
-                console.log('Erro ao fechar o caixa', error)
-                Alert.alert('Erro ao fechar o caixa', error)
-            }
+
 
         }
         else {
             console.log(unformattedValue)
             //se caso o caixa estiver fechado, ele ativa a função para abrir
-            try {
+            if (intern === true) {
 
-                const OpenCash = await axios.get(`${ApiURL}Operator/OpenCashier?cashier=${selectedCashDetails.codigo}&supply=${unformattedValue}&date=${formattedData}&connection=${user.ip}`)
-                console.log('Caixa aberto', OpenCash)
-                Alert.alert('Caixa aberto com sucesso')
+                try {
 
-                setConfirmed(false)
-                setConfirmedTwo(false)
-                setBleeding('')
+                    const OpenCash = await axios.get(`http://${user.ip}:3001/operator/opencashier?cashier=${selectedCashDetails.codigo}&supply=${unformattedValue}&date=${formattedData}`)
+                    console.log('Caixa aberto', OpenCash)
+                    Alert.alert('Caixa aberto com sucesso')
+
+                    setConfirmed(false)
+                    setConfirmedTwo(false)
+                    setBleeding('')
 
 
+                }
+                catch (error) {
+                    console.log('Erro ao abrir o caixa', error)
+                    Alert.alert('Erro ao abrir o caixa', error)
+
+                }
+            } else {
+                try {
+
+                    const OpenCash = await axios.get(`${ApiURL}Operator/OpenCashier?cashier=${selectedCashDetails.codigo}&supply=${unformattedValue}&date=${formattedData}&connection=${user.ip}`)
+                    console.log('Caixa aberto', OpenCash)
+                    Alert.alert('Caixa aberto com sucesso')
+
+                    setConfirmed(false)
+                    setConfirmedTwo(false)
+                    setBleeding('')
+
+
+                }
+                catch (error) {
+                    console.log('Erro ao abrir o caixa', error)
+                    Alert.alert('Erro ao abrir o caixa', error)
+
+                }
             }
-            catch (error) {
-                console.log('Erro ao abrir o caixa', error)
-                Alert.alert('Erro ao abrir o caixa', error)
 
-            }
         }
 
     }
@@ -210,6 +301,8 @@ export default function Cash() {
                         setValue={setSelectedCash}
                         setItems={setCashList}
                         placeholder={'Nome'}
+
+
 
 
                     />
@@ -348,7 +441,8 @@ const styles = StyleSheet.create({
         width: 200,
         gap: 10,
         marginTop: 10,
-        zIndex: 100
+        zIndex: 100,
+
 
     },
     label: {

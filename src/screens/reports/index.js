@@ -19,7 +19,7 @@ export default function Reports() {
     const [selectedItem, setSelectedItem] = useState('Folha de Caixa');
     const [dataStart, setDataStart] = useState(newDataFormat)
     const [dataEnd, setDataEnd] = useState(newDataFormat)
-    const { user } = useContext(AuthContext)
+    const { user, intern, extern } = useContext(AuthContext)
     const [loading, setLoading] = useState(false)
     //APOS ESCOLHER UM TIPO DE RELATORIO, ESSE TIPO DE RELATORIO EM BREVE SERA SALVO NESSA STATE QUE FICARA RESPONSAVEL PELO CARREGAMENTO
     //DA LISTA
@@ -124,37 +124,75 @@ export default function Reports() {
 
 
         if (selectedItem) {
-            try {
-                const reportEndpoints = {
-                    'Folha de Caixa': 'Report/CashReport',
-                    'Relação de Contas a Receber': 'Report/BillsToReceiveReport',
-                    'Relação de Contas a Pagar': 'Report/BillsToPayReport',
-                    'Relação de Vendas': 'Report/SalesReport',
-                    'Relação de Vendas por Produtos': 'Report/SalesReportByProduct',
-                    'Relação de Produtos': 'Report/ProductListReport',
+            if (intern === true) {
+                console.log('Localizando relatórios a partir do ip interno')
+                try {
+                    const reportEndpoints = {
+                        'Folha de Caixa': 'report/cashreport',
+                        'Relação de Contas a Receber': 'report/BillsToReceiveReport',
+                        'Relação de Contas a Pagar': 'report/BillsToPayReport',
+                        'Relação de Vendas': 'report/salesreport',
+                        'Relação de Vendas por Produtos': 'report/salesreportbyproduct',
+                        'Relação de Produtos': 'report/productlistreport',
+                    }
+                    const endpoint = reportEndpoints[selectedItem]
+                    if (endpoint) {
+
+                        const url = `http://${user.ip}:3001/${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}`
+                        console.log(url)
+                        const response = await axios.get(`http://${user.ip}:3001/${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}`)
+
+                        console.log('Lista carregada e salva no selectedList')
+                        setSelectedList(response.data)
+                        setLoading(false)
+
+
+
+                    } else {
+                        setLoading(false)
+                        console.log('Relatório nao encontrado')
+                    }
                 }
-                const endpoint = reportEndpoints[selectedItem]
-                if (endpoint) {
-                    const url = `${ApiURL}${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}&connection=${user.ip}`
-                    console.log(url)
-                    const response = await axios.get(`${ApiURL}${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}&connection=${user.ip}`)
-
-                    console.log('Lista carregada e salva no selectedList')
-                    setSelectedList(response.data)
+                catch (error) {
                     setLoading(false)
-
-
-
-                } else {
-                    setLoading(false)
-                    console.log('Relatório nao encontrado')
+                    console.log('erro ao carregar dados', error)
+                    setSelectedList([])
                 }
-
-            } catch (error) {
-                setLoading(false)
-                console.log('erro ao carregar dados', error)
-                setSelectedList([])
             }
+            else {
+                try {
+                    const reportEndpoints = {
+                        'Folha de Caixa': 'Report/CashReport',
+                        'Relação de Contas a Receber': 'Report/BillsToReceiveReport',
+                        'Relação de Contas a Pagar': 'Report/BillsToPayReport',
+                        'Relação de Vendas': 'Report/SalesReport',
+                        'Relação de Vendas por Produtos': 'Report/SalesReportByProduct',
+                        'Relação de Produtos': 'Report/ProductListReport',
+                    }
+                    const endpoint = reportEndpoints[selectedItem]
+                    if (endpoint) {
+                        const url = `${ApiURL}${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}&connection=${user.ip}`
+                        console.log(url)
+                        const response = await axios.get(`${ApiURL}${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}&connection=${user.ip}`)
+
+                        console.log('Lista carregada e salva no selectedList')
+                        setSelectedList(response.data)
+                        setLoading(false)
+
+
+
+                    } else {
+                        setLoading(false)
+                        console.log('Relatório nao encontrado')
+                    }
+
+                } catch (error) {
+                    setLoading(false)
+                    console.log('erro ao carregar dados', error)
+                    setSelectedList([])
+                }
+            }
+
         }
         else {
             setLoading(false)

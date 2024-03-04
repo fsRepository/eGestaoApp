@@ -14,6 +14,9 @@ import { AuthContext } from '../../contexts/context'
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
+import { CheckBox } from '@rneui/themed';
+
 // import { Container } from './styles';
 
 export default function Login() {
@@ -28,29 +31,14 @@ export default function Login() {
     const isFocused = useIsFocused()
     const [focusedInput, setFocusedInput] = useState(null)
 
+
+    //pega a informação do usuario, se esta usando ip interno ou externo
+
     //usando contexto
-    const { login, loading, setLoading, ipAdress } = useContext(AuthContext);
+    const { login, loading, setLoading, ipAdress, intern, setIntern, extern, setExtern } = useContext(AuthContext);
 
 
 
-    // formatação do ip digitado
-    const formatIPAddress = (value) => {
-        // Remove qualquer caractere que não seja um número ou um ponto (.)
-        const formattedValue = value.replace(/[^\d.]/g, '');
-
-        // Quebra o IP em partes separadas por pontos
-        const parts = formattedValue.split('.');
-
-        // Formata cada parte do IP para garantir que esteja no intervalo de 0 a 255
-        const formattedParts = parts.map((part) => {
-            const intValue = parseInt(part, 10);
-            return intValue > 255 ? '255' : String(intValue);
-        });
-
-        // Constrói novamente o IP formatado
-        let formattedIP = formattedParts.join('.');
-        setIp(formattedIP);
-    };
 
 
 
@@ -86,6 +74,8 @@ export default function Login() {
     }, []);
 
 
+
+
     //FUNÇÃO PARA MUDAR A SENHA DE VISIVEL PRA INVISIVEL
     function handleVisiblePassword() {
         setVisible(!visible)
@@ -95,7 +85,7 @@ export default function Login() {
     function handleLogin() {
         if (user !== '' & password !== '' & port !== '&' & ip !== '') {
             setLoading(true)
-            login(user, password, ip, port);
+            login(user, password, ip, port, intern, extern);
 
         } else {
             Alert.alert('Preencha os campos vazios')
@@ -130,7 +120,7 @@ export default function Login() {
                 <View style={styles.container}>
                     <View style={{ alignItems: 'center' }}>
 
-                        <Image source={Logo} style={{ width: 100, height: 100, marginTop: 30 }} />
+                        <Image source={Logo} style={{ width: 100, height: 100, marginTop: 50 }} />
                     </View>
                     <View style={styles.textContainer}>
 
@@ -187,7 +177,7 @@ export default function Login() {
                                 style={styles.input}
                                 placeholder='IP'
                                 keyboardType='default'
-                                onChangeText={formatIPAddress}
+                                onChangeText={(text) => setIp(text)}
                                 onFocus={() => handleInputFocus('IP')}
                                 onBlur={handleInputBlur}
 
@@ -211,7 +201,29 @@ export default function Login() {
 
 
                     </View>
+                    <Text style={{ fontSize: 14, marginTop: 10 }}>Qual IP você esta acessando?</Text>
+                    <View style={{ flexDirection: 'row', marginTop: 10 }}>
 
+                        <CheckBox
+                            title='Interno'
+                            checked={intern}
+
+                            containerStyle={{ backfaceVisibility: 'hidden' }}
+                            onPress={() => {
+
+                                setIntern(true)
+                                setExtern(false)
+                            }}
+                        />
+                        <CheckBox
+                            title='Externo'
+                            checked={extern}
+                            onPress={() => {
+                                setExtern(true)
+                                setIntern(false)
+                            }}
+                        />
+                    </View>
                     <TouchableOpacity onPress={handleLogin} style={styles.button} >
                         {
                             loading ? <ActivityIndicator color='white' />

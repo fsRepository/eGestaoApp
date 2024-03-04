@@ -16,7 +16,7 @@ export default function Stock() {
     const [originalProducts, setOriginalProducts] = useState([])
     const [loading, setLoading] = useState(false)
     const [atived, setAtived] = useState(false)
-    const { user, } = useContext(AuthContext)
+    const { user, intern, extern } = useContext(AuthContext)
     const [filteredItems, setFilteredItems] = useState([])
     console.log(loading)
 
@@ -38,34 +38,62 @@ export default function Stock() {
     }
     //Assim que a pagina abre vão ser carregador todos os produtos através desse use effect
 
-
+    // antes de carregar os produtos ele verifica se a chamada e de uma api interna ou externa
     async function LoadProducts() {
 
         setLoading(true)
-        try {
-            const response = await axios.get(`${ApiURL}${productEndpoint}?connection=${user.ip}`);
+        if (intern === true) {
+            try {
+                const response = await axios.get(`http://${user.ip}:3001/product/get`)
 
-            if (response.status === 200) {
-                //se der certo ele 
-                const products = response.data;
+                if (response.status === 200) {
+                    //se der certo ele 
+                    const products = response.data;
 
-                setFilteredProducts(products)
-                setOriginalProducts(products)
-                setLoading(false)
+                    setFilteredProducts(products)
+                    setOriginalProducts(products)
+                    setLoading(false)
 
-            } else {
-                setLoading(false)
-                console.error('Erro ao obter produtos. Código de status:', response.status);
-                Alert.alert('erro na solicitação')
+                } else {
+                    setLoading(false)
+                    console.error('Erro ao obter produtos. Código de status:', response.status);
+                    Alert.alert('erro na solicitação')
+
+                }
+            } catch (error) {
+
+
+                console.error('Erro durante a solicitação:', error);
+                Alert.alert('Erro na solicitação', error)
 
             }
-        } catch (error) {
+        } else {
+            try {
+                const response = await axios.get(`${ApiURL}${productEndpoint}?connection=${user.ip}`);
+
+                if (response.status === 200) {
+                    //se der certo ele 
+                    const products = response.data;
+
+                    setFilteredProducts(products)
+                    setOriginalProducts(products)
+                    setLoading(false)
+
+                } else {
+                    setLoading(false)
+                    console.error('Erro ao obter produtos. Código de status:', response.status);
+                    Alert.alert('erro na solicitação')
+
+                }
+            } catch (error) {
 
 
-            console.error('Erro durante a solicitação:', error);
-            Alert.alert('Erro na solicitação', error)
+                console.error('Erro durante a solicitação:', error);
+                Alert.alert('Erro na solicitação', error)
 
+            }
         }
+
     }
 
 
@@ -184,7 +212,7 @@ export default function Stock() {
                         showsVerticalScrollIndicator={false}
                         style={{ marginTop: 10, }}
                         data={filteredProducts}
-                        keyExtractor={(item) => item.codigo}
+                        keyExtractor={(item) => item.CODIGO}
                         renderItem={({ item }) => (
 
                             <ListItem item={item} atived={() => setAtived(!atived)} />

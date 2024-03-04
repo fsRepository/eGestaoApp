@@ -15,7 +15,7 @@ export default function ModalInfoProduct({ item, closeModal, atived }) {
 
     const [stockAditional, setStockAditional] = useState('')
     const [newValue, setNewValue] = useState('')
-    const { user } = useContext(AuthContext)
+    const { user, intern, extern } = useContext(AuthContext)
 
     function RefreshValues() {
         if (newValue === item.precovenda && stockAditional === item.estoque) {
@@ -42,22 +42,37 @@ export default function ModalInfoProduct({ item, closeModal, atived }) {
         const unformattedValue = parseFloat(newValue.replace(/[^\d,.-]/g, '').replace(',', '.'));
         console.log(unformattedValue);
         if (stockAditional !== '' || newValue !== '') {
+            if (intern === true) {
+                console.log(' acessando Ip interno')
+                try {
+                    const response = await axios.get(`http://${user.ip}:3001/product/alterproduct?codigo=${item.codigo}&usuario=${user.codigo}&quantidade=${stockAditional || item.estoque}&unidade=UN&valor=${unformattedValue || item.precovenda}`)
+                    Alert.alert('Dados atualizados')
+                    atived()
+                    closeModal()
+                }
+                catch (error) {
+                    console.log(error)
+                    Alert.alert('Erro ao atualizar dados,', error)
+                }
 
-            try {
-                const url = `${ApiURL}Product/AlterProduct?codigo=${item.codigo}&usuario=${item.codigo}&quantidade=${stockAditional}&unidade=UN&valor=${unformattedValue}&connection=${user.ip}`
-                console.log(url)
-                const response = await axios.get(`${ApiURL}Product/AlterProduct?codigo=${item.codigo}&usuario=${item.codigo}&quantidade=${stockAditional || item.estoque}&unidade=UN&valor=${unformattedValue || item.precovenda}&connection=${user.ip}`)
-                console.log(response.data)
+            } else {
+                try {
+                    const url = `${ApiURL}Product/AlterProduct?codigo=${item.codigo}&usuario=${item.codigo}&quantidade=${stockAditional}&unidade=UN&valor=${unformattedValue}&connection=${user.ip}`
+                    console.log(url)
+                    const response = await axios.get(`${ApiURL}Product/AlterProduct?codigo=${item.codigo}&usuario=${user.codigo}&quantidade=${stockAditional || item.estoque}&unidade=UN&valor=${unformattedValue || item.precovenda}&connection=${user.ip}`)
+                    console.log(response.data)
 
-                Alert.alert('Dados atualizados')
-                atived()
-                closeModal()
+                    Alert.alert('Dados atualizados')
+                    atived()
+                    closeModal()
 
+                }
+                catch (error) {
+                    console.log(error)
+                    Alert.alert('Erro ao atualizar dados,', error)
+                }
             }
-            catch (error) {
-                console.log(error)
-                Alert.alert('Erro ao atualizar dados,', error)
-            }
+
         }
     }
 

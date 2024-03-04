@@ -19,7 +19,7 @@ export default function Dashboard() {
     const [selectedItem, setSelectedItem] = useState('');
     const [dataStart, setDataStart] = useState(newDataFormat)
     const [dataEnd, setDataEnd] = useState(newDataFormat)
-    const { user } = useContext(AuthContext)
+    const { user, intern, extern } = useContext(AuthContext)
     const [ItemDetails, setItemDetails] = useState([])
     const [loading, setLoading] = useState(false)
     //const que vai pegar as dimensoes de largura  ealtura do dispositivo utilizado/trazer mais responsividade
@@ -31,35 +31,69 @@ export default function Dashboard() {
 
     }
 
-
     async function loadAllDashboards() {
         setLoading(true)
-        try {
-            const dataDash = {
-                'Grupos mais Vendidos': 'Dashboard/MainGroups',
-                'Contas a Receber': 'Dashboard/BillsToReceive',
-                'Contas a Pagar': 'Dashboard/BillsToPay',
-                'Clientes que mais Compraram': 'Dashboard/MainCustomers',
-                'Vendedores que mais vendem': 'Dashboard/MainSellers',
-                'Produtos mais Vendidos': 'Dashboard/MainProducts',
-                'Formas de Pagamento': 'Dashboard/PaymentForm',
-                'Fluxo de Caixa': 'Dashboard/CashFlow'
-            };
+        if (intern === true) {
+            console.log('consumindo atraves de ip interno')
+            try {
+                const dataDash = {
+                    'Grupos mais Vendidos': 'dashboard/maingroups',
+                    'Contas a Receber': 'dashboard/billstoreceive',
+                    'Contas a Pagar': 'dashboard/billstopay',
+                    'Clientes que mais Compraram': 'dashboard/maincustomers',
+                    'Vendedores que mais vendem': 'dashboard/mainsellers',
+                    'Produtos mais Vendidos': 'dashboard/mainproducts',
+                    'Formas de Pagamento': 'Dashboard/PaymentForm',
+                    'Fluxo de Caixa': 'Dashboard/Cashflow'
+                };
 
-            const requests = Object.values(dataDash).map(async (endpoint) => {
-                const response = await axios.get(`${ApiURL}${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}&connection=${user.ip}`);
-                return { [endpoint]: response.data }; // Retorna um objeto com a chave sendo o endpoint e o valor sendo os dados
-            });
+                const requests = Object.values(dataDash).map(async (endpoint) => {
+                    const response = await axios.get(`http://${user.ip}:3001/${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}`);
+                    return { [endpoint]: response.data }; // Retorna um objeto com a chave sendo o endpoint e o valor sendo os dados
+                });
 
-            const responses = await Promise.all(requests);
-            const combinedData = Object.assign({}, ...responses); // Combina todos os dados em um único objeto
-            setLoading(false)
-            setItemDetails(combinedData);
-            console.log(combinedData)
-        } catch (error) {
-            console.log('erro', error);
-            setLoading(false)
+                const responses = await Promise.all(requests);
+                const combinedData = Object.assign({}, ...responses); // Combina todos os dados em um único objeto
+                setLoading(false)
+                setItemDetails(combinedData);
+                console.log('info', ItemDetails['Dashboard/Cashflow'])
+                console.log('teste')
+            } catch (error) {
+                console.log('erro', error);
+                setLoading(false)
+            }
+
+        } else {
+            try {
+                const dataDash = {
+                    'Grupos mais Vendidos': 'Dashboard/MainGroups',
+                    'Contas a Receber': 'Dashboard/BillsToReceive',
+                    'Contas a Pagar': 'Dashboard/BillsToPay',
+                    'Clientes que mais Compraram': 'Dashboard/MainCustomers',
+                    'Vendedores que mais vendem': 'Dashboard/MainSellers',
+                    'Produtos mais Vendidos': 'Dashboard/MainProducts',
+                    'Formas de Pagamento': 'Dashboard/PaymentForm',
+                    'Fluxo de Caixa': 'Dashboard/CashFlow'
+                };
+
+                const requests = Object.values(dataDash).map(async (endpoint) => {
+                    const response = await axios.get(`${ApiURL}${endpoint}?dataInicial=${dataStart}&dataFinal=${dataEnd}&connection=${user.ip}`);
+                    return { [endpoint]: response.data }; // Retorna um objeto com a chave sendo o endpoint e o valor sendo os dados
+                });
+
+                const responses = await Promise.all(requests);
+                const combinedData = Object.assign({}, ...responses); // Combina todos os dados em um único objeto
+                setLoading(false)
+                setItemDetails(combinedData);
+
+                console.log(combinedData)
+
+            } catch (error) {
+                console.log('erro', error);
+                setLoading(false)
+            }
         }
+
     }
 
     const handleSearch = async () => {
@@ -87,8 +121,8 @@ export default function Dashboard() {
                         <Text style={{ textAlign: 'center', marginTop: 200, fontSize: 16 }} >Escolha um espaço de tempo e clique na lupinha para gerar seus dashboards</Text> :
 
 
-                        <DashboardRender
-                            pagar={ItemDetails['Dashboard/BillsToPay']} receber={ItemDetails['Dashboard/BillsToReceive']} pagamento={ItemDetails['Dashboard/PaymentForm']} caixa={ItemDetails['Dashboard/CashFlow']} customers={ItemDetails['Dashboard/MainCustomers']} sellers={ItemDetails['Dashboard/MainSellers']} group={ItemDetails['Dashboard/MainGroups']} products={ItemDetails['Dashboard/MainProducts']} />
+                        < DashboardRender
+                            pagar={ItemDetails['Dashboard/BillsToPay'] || ItemDetails['dashboard/billstopay']} receber={ItemDetails['Dashboard/BillsToReceive'] || ItemDetails['dashboard/billstoreceive']} pagamento={ItemDetails['Dashboard/PaymentForm'] || ItemDetails['Dashboard/PaymentForm']} caixa={ItemDetails['Dashboard/CashFlow'] || ItemDetails['Dashboard/Cashflow']} customers={ItemDetails['Dashboard/MainCustomers'] || ItemDetails['dashboard/maincustomers']} sellers={ItemDetails['Dashboard/MainSellers'] | ItemDetails['dashboard/mainsellers']} group={ItemDetails['Dashboard/MainGroups'] || ItemDetails['dashboard/maingroups']} products={ItemDetails['Dashboard/MainProducts'] || ItemDetails['dashboard/mainproducts']} />
 
 
 

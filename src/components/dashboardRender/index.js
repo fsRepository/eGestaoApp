@@ -8,6 +8,7 @@ import DashboardGroups from '../dashboardGroups';
 
 export default function DashboardRender({ pagar, receber, pagamento, caixa, customers, group, sellers, products }) {
     // Função para formatar o valor para o formato monetário
+    console.log(pagar, receber, pagamento, caixa, customers, group, sellers, products)
     const formatarValorMonetario = (valor) => {
         return valor ? valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : valor;
     };

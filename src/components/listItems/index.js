@@ -6,6 +6,11 @@ import ModalInfoProduct from '../modalInfoProduct'
 
 export default function ListItem({ item, atived }) {
 
+
+
+
+
+
     const [visible, setVisible] = useState(false)
     const [itemSelected, setItemSelected] = useState(null)
 
@@ -18,6 +23,7 @@ export default function ListItem({ item, atived }) {
         setItemSelected(item)
         console.log(itemSelected)
     }
+
 
     return (
 
